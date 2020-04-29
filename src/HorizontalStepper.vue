@@ -30,10 +30,10 @@
             <transition :enter-active-class="enterAnimation" :leave-active-class="leaveAnimation" mode="out-in">
                 <!--If keep alive-->
                 <keep-alive v-if="keepAliveData">
-                    <component :is="steps[currentStep.index].component" :clickedNext="nextButton[currentStep.name]" @can-continue="proceed" @change-next="changeNextBtnValue" :current-step="currentStep"></component>
+                    <component :is="steps[currentStep.index].component" :clickedNext="nextButton[currentStep.name]" @previous="backStep()" @next="nextStep()" @can-continue="proceed" @change-next="changeNextBtnValue" :current-step="currentStep" :error="errorMessage"></component>
                 </keep-alive>
                 <!--If not show component and destroy it in each step change-->
-                <component v-else :is="steps[currentStep.index].component" :clickedNext="nextButton[currentStep.name]" @can-continue="proceed" @change-next="changeNextBtnValue" :current-step="currentStep"></component>
+                <component v-else :is="steps[currentStep.index].component" :clickedNext="nextButton[currentStep.name]" @previous="backStep()" @next="nextStep()" @can-continue="proceed" @change-next="changeNextBtnValue" :current-step="currentStep" :error="errorMessage"></component>
             </transition>
         </div>
         <div :class="['bottom', (currentStep.index > 0) ? '' : 'only-next']">
@@ -104,7 +104,8 @@ export default {
       nextButton: {},
       canContinue: false,
       finalStep: false,
-      keepAliveData: this.keepAlive
+      keepAliveData: this.keepAlive,
+      errorMessage: '',
     };
   },
 
@@ -177,10 +178,13 @@ export default {
 
       this.canContinue = false;
 
-      this.$emit("before-next-step", { currentStep: this.currentStep }, (next = true) => {
+      this.$emit("before-next-step", { currentStep: this.currentStep }, (errorMessage, next = true) => {
         this.canContinue = true;
         if (next) {
+          this.errorMessage = '';
           this.nextStepAction()
+        } else {
+          this.errorMessage = errorMessage;
         }
       });
     },
